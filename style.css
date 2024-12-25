@@ -1,0 +1,11 @@
+/* Custom scrollbar for the terminal */
+.terminal-body::-webkit-scrollbar {
+    width: 6px;
+}
+.terminal-body::-webkit-scrollbar-thumb {
+    background: #4a5568; /* Gray scrollbar */
+    border-radius: 10px;
+}
+.terminal-body::-webkit-scrollbar-thumb:hover {
+    background: #2d3748; /* Darker gray on hover */
+}
