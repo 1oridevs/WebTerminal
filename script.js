@@ -1,6 +1,7 @@
 // DOM Elements
 const inputField = document.getElementById("input");
 const outputField = document.getElementById("output");
+const body = document.body;
 
 // Command History
 const commandHistory = [];
@@ -8,11 +9,33 @@ let historyIndex = -1;
 
 // Predefined Commands
 const commands = {
-    help: "Available commands: help, about, clear, echo [message], date",
+    help: "Available commands: help, about, clear, echo [message], date, theme, addcommand",
     about: "WebTerminal v1.0 - A lightweight web-based terminal emulator.",
     clear: "Clears the terminal screen.",
     date: `Current Date: ${new Date().toLocaleString()}`,
     echo: (args) => args.join(" "),
+    theme: (args) => {
+        if (args[0] === "dark") {
+            setTheme("dark");
+            return "Theme set to dark mode.";
+        } else if (args[0] === "light") {
+            setTheme("light");
+            return "Theme set to light mode.";
+        } else {
+            return "Usage: theme [dark|light]";
+        }
+    },
+    addcommand: (args) => {
+        const [name, ...output] = args;
+        if (!name || output.length === 0) {
+            return "Usage: addcommand [name] [output]";
+        }
+        if (commands[name]) {
+            return `Error: Command "${name}" already exists.`;
+        }
+        commands[name] = () => output.join(" ");
+        return `Command "${name}" added successfully.`;
+    },
 };
 
 // Add Output to Terminal
@@ -35,6 +58,17 @@ const processCommand = (input) => {
     } else {
         addOutput(`Command not found: ${command}`);
     }
+};
+
+// Theme Persistence Functions
+const setTheme = (theme) => {
+    body.className = theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-black";
+    localStorage.setItem("theme", theme);
+};
+
+const applySavedTheme = () => {
+    const savedTheme = localStorage.getItem("theme") || "dark";
+    setTheme(savedTheme);
 };
 
 // Event Listener for Input
@@ -64,4 +98,9 @@ inputField.addEventListener("keydown", (e) => {
             inputField.value = "";
         }
     }
+});
+
+// Initialize Terminal
+document.addEventListener("DOMContentLoaded", () => {
+    applySavedTheme();
 });
