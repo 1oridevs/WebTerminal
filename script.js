@@ -1,6 +1,7 @@
 // DOM Elements
 const inputField = document.getElementById("input");
 const outputField = document.getElementById("output");
+const suggestionsList = document.getElementById("suggestions");
 const settingsModal = document.getElementById("settings-modal");
 const settingsToggle = document.getElementById("settings-toggle");
 const closeSettingsButton = document.getElementById("close-settings");
@@ -47,6 +48,45 @@ const clearTerminal = () => {
     outputField.textContent = "Welcome to WebTerminal! Type \"help\" for a list of commands.";
 };
 
+// Show Suggestions
+const showSuggestions = (input) => {
+    const matches = Object.keys(commands).filter((cmd) => cmd.startsWith(input));
+    suggestionsList.innerHTML = "";
+    if (matches.length > 0) {
+        matches.forEach((match) => {
+            const suggestionItem = document.createElement("li");
+            suggestionItem.textContent = match;
+            suggestionItem.className = "p-2 hover:bg-gray-700 cursor-pointer";
+            suggestionItem.onclick = () => {
+                inputField.value = match;
+                hideSuggestions();
+            };
+            suggestionsList.appendChild(suggestionItem);
+        });
+        suggestionsList.classList.remove("hidden");
+    } else {
+        hideSuggestions();
+    }
+};
+
+// Hide Suggestions
+const hideSuggestions = () => {
+    suggestionsList.classList.add("hidden");
+};
+
+// Auto-Complete Command with Tab
+const autoCompleteCommand = (input) => {
+    const matches = Object.keys(commands).filter((cmd) => cmd.startsWith(input));
+    if (matches.length === 1) {
+        inputField.value = matches[0];
+        hideSuggestions();
+    } else if (matches.length > 1) {
+        showSuggestions(input);
+    } else {
+        hideSuggestions();
+    }
+};
+
 // Toggle Settings Modal
 const toggleSettingsModal = () => {
     settingsModal.classList.toggle("hidden");
@@ -86,6 +126,15 @@ const handleKeyboardShortcuts = (e) => {
 };
 
 // Event Listeners
+inputField.addEventListener("input", () => {
+    const input = inputField.value.trim();
+    if (input) {
+        showSuggestions(input);
+    } else {
+        hideSuggestions();
+    }
+});
+
 inputField.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
         const input = inputField.value.trim();
@@ -95,10 +144,30 @@ inputField.addEventListener("keydown", (e) => {
             historyIndex = commandHistory.length;
             processCommand(input);
             inputField.value = "";
+            hideSuggestions();
         }
+    } else if (e.key === "ArrowUp") {
+        // Navigate Command History (Up)
+        if (historyIndex > 0) {
+            historyIndex--;
+            inputField.value = commandHistory[historyIndex];
+        }
+    } else if (e.key === "ArrowDown") {
+        // Navigate Command History (Down)
+        if (historyIndex < commandHistory.length - 1) {
+            historyIndex++;
+            inputField.value = commandHistory[historyIndex];
+        } else {
+            historyIndex = commandHistory.length;
+            inputField.value = "";
+        }
+    } else if (e.key === "Tab") {
+        // Auto-Complete Command
+        e.preventDefault();
+        autoCompleteCommand(inputField.value.trim());
     }
 });
-document.addEventListener("keydown", handleKeyboardShortcuts);
+
 settingsToggle.addEventListener("click", toggleSettingsModal);
 closeSettingsButton.addEventListener("click", toggleSettingsModal);
 fontSizeSelect.addEventListener("change", applySettings);
